@@ -3,11 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Калькулятор вислуги років</title>
+    <title>Вислуга 360</title>
     <meta
       name="description"
       content="Послужний список і калькулятор вислуги років з експортом у Word та Excel. Дані не залишають ваш браузер."
     />
+    <script>
+      // Тему ставимо до першого рендеру, щоб не блимало світлим.
+      (function () {
+        try {
+          var saved = localStorage.getItem("vysluha:theme");
+          var dark =
+            saved === "dark" ||
+            (saved !== "light" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

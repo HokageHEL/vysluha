@@ -339,10 +339,10 @@ export const ServiceRecordTab = ({
                 <tbody>
                   {records.map((record, index) => (
                     <tr key={index}>
-                      <td className="w-[190px] border border-[#bfbfbf] px-2 py-0.5 align-top whitespace-nowrap">
+                      <td className="w-[190px] border border-border px-2 py-0.5 align-top whitespace-nowrap">
                         {formatPeriod(record)}
                       </td>
-                      <td className="border border-[#bfbfbf] px-2 py-0.5 text-justify align-middle">
+                      <td className="border border-border px-2 py-0.5 text-justify align-middle">
                         {formatPlaceLine(record)}
                       </td>
                     </tr>

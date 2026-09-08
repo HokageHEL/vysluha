@@ -2,15 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Палітра свідомо уникає абсолютно білого (0% 100%) і абсолютно чорного
+   (0% 0%): найсвітліше — 99%, найтемніше — 10%. */
+
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    color-scheme: light;
+
+    --background: 0 0% 96%;
     --foreground: 0 0% 15%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 99%;
     --card-foreground: 0 0% 15%;
 
-    --popover: 0 0% 100%;
+    --popover: 0 0% 99%;
     --popover-foreground: 0 0% 15%;
 
     --primary: 35 100% 65%;
@@ -25,20 +30,54 @@
     --accent: var(--primary);
     --accent-foreground: 0 0% 15%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 72% 48%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 85%;
-    --input: 0 0% 100%;
+    --input: 0 0% 99%;
     --ring: 35 100% 65%;
 
     --radius: 0.5rem;
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    --background: 0 0% 10%;
+    --foreground: 0 0% 92%;
+
+    --card: 0 0% 13%;
+    --card-foreground: 0 0% 92%;
+
+    --popover: 0 0% 13%;
+    --popover-foreground: 0 0% 92%;
+
+    --primary: 35 95% 60%;
+    --primary-foreground: 0 0% 12%;
+
+    --secondary: 0 0% 24%;
+    --secondary-foreground: 0 0% 92%;
+
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 63%;
+
+    --accent: var(--primary);
+    --accent-foreground: 0 0% 12%;
+
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 96%;
+
+    --border: 0 0% 24%;
+    --input: 0 0% 16%;
+    --ring: 35 95% 60%;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    /* Tailwind за замовчуванням має тут #fff — підміняємо на колір фону теми */
+    --tw-ring-offset-color: hsl(var(--background));
   }
 
   body {
