@@ -2,6 +2,25 @@
   "name": "vysluha",
   "private": true,
   "version": "1.0.0",
+  "description": "Послужний список і калькулятор вислуги років з експортом витягу у Word та Excel. Усе рахується в браузері, без бекенда.",
+  "author": "Oleksandr Fridrikh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HokageHEL/vysluha.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HokageHEL/vysluha/issues"
+  },
+  "keywords": [
+    "вислуга",
+    "послужний список",
+    "витяг",
+    "ЗСУ",
+    "docx",
+    "vite",
+    "react"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
