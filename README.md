@@ -8,6 +8,8 @@
 
 Витягнуто з проєкту `human_data_center` (вкладки «Послужний список» і «Вислуга»).
 
+Готовий застосунок: <https://vysluha.vercel.app/>
+
 Автор — [Oleksandr Fridrikh](https://github.com/HokageHEL).
 Код відкритий під ліцензією MIT: <https://github.com/HokageHEL/vysluha>
 

@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Послужний список і калькулятор вислуги років з експортом витягу у Word та Excel. Усе рахується в браузері, без бекенда.",
+  "homepage": "https://vysluha.vercel.app/",
   "author": "Oleksandr Fridrikh",
   "license": "MIT",
   "repository": {
