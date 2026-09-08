@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, HelpCircle, Moon, RotateCcw, Sun, Upload } from "lucide-react";
+import {
+  Download,
+  Github,
+  HelpCircle,
+  Moon,
+  RotateCcw,
+  Sun,
+  Upload,
+} from "lucide-react";
 import { HowTo } from "@/components/HowTo";
 import { Logo } from "@/components/Logo";
 import { PersonForm } from "@/components/PersonForm";
@@ -105,7 +113,7 @@ export default function App() {
             onClick={handleReset}
           >
             <RotateCcw className="mr-1 h-3.5 w-3.5" />
-            Почати спочатку
+            Очистити
           </Button>
           <Button
             variant="outline"
@@ -171,6 +179,20 @@ export default function App() {
           />
         </TabsContent>
       </Tabs>
+
+      <footer className="border-t pt-3 text-center text-xs text-muted-foreground">
+        Дякую, що користуєтесь. Посилання на проєкт —{" "}
+        <a
+          href="https://github.com/HokageHEL/vysluha"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-foreground"
+        >
+          <Github className="h-3 w-3" />
+          GitHub
+        </a>
+        , там же приймаю пропозиції й ідеї.
+      </footer>
     </div>
   );
 }
