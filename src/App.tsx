@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, HelpCircle, Moon, RotateCcw, Sun, Upload } from "lucide-react";
 import { HowTo } from "@/components/HowTo";
+import { Logo } from "@/components/Logo";
 import { PersonForm } from "@/components/PersonForm";
 import { ServiceCalculatorTab } from "@/components/ServiceCalculatorTab";
 import { ServiceRecordTab } from "@/components/ServiceRecordTab";
@@ -59,11 +60,14 @@ export default function App() {
   return (
     <div className="mx-auto max-w-[1600px] space-y-3 p-3 sm:p-6">
       <header className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-lg font-semibold">Вислуга 360</h1>
-          <p className="text-xs text-muted-foreground">
-            Послужний список і калькулятор вислуги років
-          </p>
+        <div className="flex items-center gap-2.5">
+          <Logo className="h-8 w-8 shrink-0" />
+          <div>
+            <h1 className="text-lg font-semibold leading-tight">Вислуга 360</h1>
+            <p className="text-xs text-muted-foreground">
+              Послужний список і калькулятор вислуги років
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-1.5">
           <Button
