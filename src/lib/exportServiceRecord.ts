@@ -35,7 +35,7 @@ export function buildPersonLine(person: ServiceExtractPerson): string {
     [person.militaryRank, person.fullName].filter(Boolean).join(" "),
     [
       lowerFirst(person.position),
-      lowerFirst(person.unit),
+      person.unit ? `військової частини ${person.unit}` : "",
     ]
       .filter(Boolean)
       .join(" "),

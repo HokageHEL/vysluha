@@ -60,12 +60,14 @@ vercel --prod   # продакшн
 src/
   App.tsx                       стан, вкладки, збереження/імпорт JSON
   components/
-    PersonForm.tsx              ПІБ, звання, посада, військова частина
+    PersonForm.tsx              ПІБ, звання, посада, номер військової частини
+    RankSelect.tsx              вибір звання зі списку або введення вручну
     ServiceRecordTab.tsx        послужний список + експорт Word/Excel
     ServiceCalculatorTab.tsx    додаткові періоди + підсумок вислуги
   lib/
     service-calc.ts             посегментний розрахунок вислуги
     exportServiceRecord.ts      генерація .docx / .xlsx
     storage.ts                  localStorage + JSON
+    ranks.ts                    військові звання за зростанням, 3 групи
     types.ts                    ServiceRecord, ServiceExtraPeriod
 ```

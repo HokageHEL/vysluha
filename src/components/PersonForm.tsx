@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RankSelect } from "@/components/RankSelect";
 import {
   ServiceExtractPerson,
   buildPersonLine,
@@ -29,8 +30,8 @@ const FIELDS: {
   },
   {
     key: "unit",
-    label: "Військова частина (у родовому відмінку)",
-    placeholder: "військової частини А0000",
+    label: "Номер військової частини",
+    placeholder: "А0000",
   },
 ];
 
@@ -51,14 +52,25 @@ export const PersonForm = ({ person, onChange }: PersonFormProps) => {
               <Label htmlFor={field.key} className="text-xs">
                 {field.label}
               </Label>
-              <Input
-                id={field.key}
-                value={person[field.key] || ""}
-                placeholder={field.placeholder}
-                onChange={(e) =>
-                  onChange({ ...person, [field.key]: e.target.value })
-                }
-              />
+              {field.key === "militaryRank" ? (
+                <RankSelect
+                  id={field.key}
+                  value={person.militaryRank || ""}
+                  placeholder={field.placeholder}
+                  onChange={(militaryRank) =>
+                    onChange({ ...person, militaryRank })
+                  }
+                />
+              ) : (
+                <Input
+                  id={field.key}
+                  value={person[field.key] || ""}
+                  placeholder={field.placeholder}
+                  onChange={(e) =>
+                    onChange({ ...person, [field.key]: e.target.value })
+                  }
+                />
+              )}
             </div>
           ))}
         </div>
