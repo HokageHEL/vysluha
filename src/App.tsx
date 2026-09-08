@@ -5,6 +5,7 @@ import { Download, HelpCircle, Moon, RotateCcw, Sun, Upload } from "lucide-react
 import { HowTo } from "@/components/HowTo";
 import { Logo } from "@/components/Logo";
 import { PersonForm } from "@/components/PersonForm";
+import { SignatureForm } from "@/components/SignatureForm";
 import { ServiceCalculatorTab } from "@/components/ServiceCalculatorTab";
 import { ServiceRecordTab } from "@/components/ServiceRecordTab";
 import {
@@ -148,11 +149,18 @@ export default function App() {
           <TabsTrigger value="record">1. Послужний список</TabsTrigger>
           <TabsTrigger value="calculator">2. Вислуга</TabsTrigger>
         </TabsList>
-        <TabsContent value="record">
+        <TabsContent value="record" className="space-y-3">
           <ServiceRecordTab
             person={state.person}
             records={state.records}
-            onChange={(records) => setState((s) => ({ ...s, records }))}
+            events={state.events}
+            signature={state.signature}
+            onChangeRecords={(records) => setState((s) => ({ ...s, records }))}
+            onChangeEvents={(events) => setState((s) => ({ ...s, events }))}
+          />
+          <SignatureForm
+            signature={state.signature}
+            onChange={(signature) => setState((s) => ({ ...s, signature }))}
           />
         </TabsContent>
         <TabsContent value="calculator">

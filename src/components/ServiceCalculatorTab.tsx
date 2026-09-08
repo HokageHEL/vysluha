@@ -16,21 +16,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { DateRange, EditorRow } from "@/components/EditorRow";
 import { ServiceExtraPeriod, ServiceRecord } from "@/lib/types";
-import { formatPeriod, formatPlaceLine } from "@/lib/exportServiceRecord";
+import { formatPeriod, formatPlaceLine } from "@/lib/extract";
 import {
   computeServiceTotals,
   formatDays360,
   periodDuration360,
 } from "@/lib/service-calc";
-import { cn } from "@/lib/utils";
 
 interface ServiceCalculatorTabProps {
   records: ServiceRecord[]; // послужний список (тільки читання тут)
   extras: ServiceExtraPeriod[];
   onChangeExtras: (extras: ServiceExtraPeriod[]) => void;
-  readOnly?: boolean;
 }
 
 const EXTRA_COEFFICIENT_OPTIONS: {
@@ -46,19 +45,12 @@ export const ServiceCalculatorTab = ({
   records,
   extras,
   onChangeExtras,
-  readOnly,
 }: ServiceCalculatorTabProps) => {
   const totals = computeServiceTotals(records, extras);
 
-  const updateExtra = (
-    index: number,
-    field: keyof ServiceExtraPeriod,
-    value: string
-  ) => {
+  const updateExtra = (index: number, patch: Partial<ServiceExtraPeriod>) => {
     onChangeExtras(
-      extras.map((extra, i) =>
-        i === index ? { ...extra, [field]: value } : extra
-      )
+      extras.map((extra, i) => (i === index ? { ...extra, ...patch } : extra))
     );
   };
 
@@ -143,127 +135,56 @@ export const ServiceCalculatorTab = ({
               навчання (×0,5) та періоди, що не зараховуються (×0).
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table className="table-fixed" style={{ minWidth: 900 }}>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-9">№</TableHead>
-                    <TableHead className="w-[150px]">Початок</TableHead>
-                    <TableHead className="w-[150px]">Кінець</TableHead>
-                    <TableHead className="w-[195px]">Коефіцієнт</TableHead>
-                    <TableHead>Примітка</TableHead>
-                    <TableHead className="w-[125px]">Тривалість</TableHead>
-                    {!readOnly && <TableHead className="w-10" />}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {extras.map((extra, index) => {
-                    const duration = periodDuration360(
-                      extra.startDate,
-                      extra.endDate
-                    );
-                    return (
-                      <TableRow key={index}>
-                        <TableCell className="align-top pt-3 text-muted-foreground">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="align-top">
-                          <Input
-                            type="date"
-                            className="w-[140px]"
-                            value={extra.startDate}
-                            disabled={readOnly}
-                            onChange={(e) =>
-                              updateExtra(index, "startDate", e.target.value)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="align-top">
-                          <Input
-                            type="date"
-                            className="w-[140px]"
-                            value={extra.endDate}
-                            disabled={readOnly}
-                            onChange={(e) =>
-                              updateExtra(index, "endDate", e.target.value)
-                            }
-                          />
-                          <span
-                            className={cn(
-                              "block h-4 text-[10px] leading-4 text-muted-foreground",
-                              extra.endDate && "invisible"
-                            )}
-                          >
-                            по т.ч.
-                          </span>
-                        </TableCell>
-                        <TableCell className="align-top">
-                          <Select
-                            value={extra.coefficient}
-                            disabled={readOnly}
-                            onValueChange={(value) =>
-                              updateExtra(index, "coefficient", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {EXTRA_COEFFICIENT_OPTIONS.map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell className="align-top">
-                          <Input
-                            value={extra.note || ""}
-                            placeholder="Напр., участь у бойових діях"
-                            disabled={readOnly}
-                            onChange={(e) =>
-                              updateExtra(index, "note", e.target.value)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="align-top pt-3 whitespace-nowrap text-sm">
-                          {duration !== null ? formatDays360(duration) : "—"}
-                        </TableCell>
-                        {!readOnly && (
-                          <TableCell className="align-top">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-destructive"
-                              onClick={() => removeExtra(index)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        )}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+            <div className="space-y-2">
+              {extras.map((extra, index) => (
+                <EditorRow
+                  key={index}
+                  onRemove={() => removeExtra(index)}
+                  removeLabel="Видалити період"
+                >
+                  <DateRange
+                    startDate={extra.startDate}
+                    endDate={extra.endDate}
+                    onChange={(patch) => updateExtra(index, patch)}
+                  />
+                  <div className="grid gap-2 sm:grid-cols-[200px_1fr]">
+                    <Select
+                      value={extra.coefficient}
+                      onValueChange={(value) =>
+                        updateExtra(index, {
+                          coefficient:
+                            value as ServiceExtraPeriod["coefficient"],
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EXTRA_COEFFICIENT_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={extra.note || ""}
+                      placeholder="Напр., участь у бойових діях"
+                      onChange={(e) =>
+                        updateExtra(index, { note: e.target.value })
+                      }
+                    />
+                  </div>
+                </EditorRow>
+              ))}
             </div>
           )}
 
-          {!readOnly && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={addExtra}
-            >
-              <Plus className="mr-1 h-4 w-4" />
-              Додати період
-            </Button>
-          )}
+          <Button variant="outline" size="sm" className="mt-3" onClick={addExtra}>
+            <Plus className="mr-1 h-4 w-4" />
+            Додати період
+          </Button>
           <p className="mt-2 text-xs text-muted-foreground">
             При пересіканні з календарною вислугою день рахується за більшим
             коефіцієнтом (пільгова ×3 перекриває календарну ×1). Періоди «не

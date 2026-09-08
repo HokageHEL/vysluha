@@ -1,15 +1,45 @@
-import { ServiceExtractPerson } from "./exportServiceRecord";
-import { ServiceExtraPeriod, ServiceRecord } from "./types";
+import {
+  ServiceEvent,
+  ServiceExtraPeriod,
+  ServiceExtractPerson,
+  ServiceRecord,
+  SignatureBlock,
+} from "./types";
 
 export interface AppState {
   person: ServiceExtractPerson;
   records: ServiceRecord[];
+  events: ServiceEvent[];
+  signature: SignatureBlock;
   extras: ServiceExtraPeriod[];
 }
 
+const EMPTY_PERSON: ServiceExtractPerson = {
+  lastName: "",
+  firstName: "",
+  middleName: "",
+  militaryRank: "",
+  birthYear: "",
+  taxId: "",
+  serviceStartDate: "",
+  serviceEndDate: "",
+  contractNote: "",
+  headerOverride: "",
+};
+
+const EMPTY_SIGNATURE: SignatureBlock = {
+  positionLines: "",
+  rank: "",
+  name: "",
+  executor: "",
+  executorPhone: "",
+};
+
 export const EMPTY_STATE: AppState = {
-  person: { fullName: "", militaryRank: "", position: "", unit: "" },
+  person: EMPTY_PERSON,
   records: [],
+  events: [],
+  signature: EMPTY_SIGNATURE,
   extras: [],
 };
 
@@ -60,21 +90,71 @@ export function clearState(): void {
   }
 }
 
-// Мінімальна валідація імпортованого файлу: беремо лише знайомі поля
-function normalize(data: unknown): AppState {
-  const obj = (data ?? {}) as Partial<AppState>;
-  const person = (obj.person ?? {}) as Partial<ServiceExtractPerson>;
+const str = (value: unknown): string =>
+  typeof value === "string" ? value : "";
+
+// Стан, збережений до переходу на формат зі зразка, мав одне поле ПІБ
+function normalizePerson(data: unknown): ServiceExtractPerson {
+  const raw = (data ?? {}) as Record<string, unknown>;
+  const [lastName = "", firstName = "", middleName = ""] = str(raw.fullName)
+    .trim()
+    .split(/\s+/);
   return {
-    person: {
-      fullName: String(person.fullName ?? ""),
-      militaryRank: String(person.militaryRank ?? ""),
-      position: String(person.position ?? ""),
-      unit: String(person.unit ?? ""),
-    },
-    records: Array.isArray(obj.records) ? (obj.records as ServiceRecord[]) : [],
-    extras: Array.isArray(obj.extras)
-      ? (obj.extras as ServiceExtraPeriod[])
-      : [],
+    lastName: str(raw.lastName) || lastName,
+    firstName: str(raw.firstName) || firstName,
+    middleName: str(raw.middleName) || middleName,
+    militaryRank: str(raw.militaryRank),
+    birthYear: str(raw.birthYear),
+    taxId: str(raw.taxId),
+    serviceStartDate: str(raw.serviceStartDate),
+    serviceEndDate: str(raw.serviceEndDate),
+    contractNote: str(raw.contractNote),
+    headerOverride: str(raw.headerOverride),
+  };
+}
+
+function normalizeSignature(data: unknown): SignatureBlock {
+  const raw = (data ?? {}) as Record<string, unknown>;
+  return {
+    positionLines: str(raw.positionLines),
+    rank: str(raw.rank),
+    name: str(raw.name),
+    executor: str(raw.executor),
+    executorPhone: str(raw.executorPhone),
+  };
+}
+
+const list = <T,>(value: unknown, map: (raw: Record<string, unknown>) => T): T[] =>
+  Array.isArray(value)
+    ? value.map((item) => map((item ?? {}) as Record<string, unknown>))
+    : [];
+
+// Мінімальна валідація імпортованого файлу: беремо лише знайомі поля.
+// Заразом відсіюються поля, які застосунок більше не використовує.
+function normalize(data: unknown): AppState {
+  const obj = (data ?? {}) as Record<string, unknown>;
+  return {
+    person: normalizePerson(obj.person),
+    records: list<ServiceRecord>(obj.records, (raw) => ({
+      startDate: str(raw.startDate),
+      endDate: str(raw.endDate),
+      position: str(raw.position),
+      place: str(raw.place),
+    })),
+    events: list<ServiceEvent>(obj.events, (raw) => ({
+      date: str(raw.date),
+      text: str(raw.text),
+    })),
+    signature: normalizeSignature(obj.signature),
+    extras: list<ServiceExtraPeriod>(obj.extras, (raw) => ({
+      startDate: str(raw.startDate),
+      endDate: str(raw.endDate),
+      coefficient:
+        raw.coefficient === "study" || raw.coefficient === "none"
+          ? raw.coefficient
+          : "preferential",
+      note: str(raw.note),
+    })),
   };
 }
 
@@ -89,7 +169,7 @@ export function downloadState(state: AppState): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${state.person.fullName || "вислуга"}.json`;
+  link.download = `${state.person.lastName || "вислуга"}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }
