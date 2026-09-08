@@ -39,8 +39,8 @@ export const PersonForm = ({ person, onChange }: PersonFormProps) => {
   const preview = buildPersonLine(person);
 
   return (
-    <Card className="overflow-hidden rounded-md border bg-card shadow-sm">
-      <CardHeader className="border-b bg-muted/30 px-3 py-2">
+    <Card className="rounded-md border bg-card shadow-sm">
+      <CardHeader className="rounded-t-md border-b bg-muted/30 px-3 py-2">
         <CardTitle className="text-sm font-semibold text-foreground">
           Дані військовослужбовця
         </CardTitle>
