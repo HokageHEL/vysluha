@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Moon, RotateCcw, Sun, Upload } from "lucide-react";
+import { Download, HelpCircle, Moon, RotateCcw, Sun, Upload } from "lucide-react";
 import { HowTo } from "@/components/HowTo";
 import { PersonForm } from "@/components/PersonForm";
 import { ServiceCalculatorTab } from "@/components/ServiceCalculatorTab";
@@ -11,7 +11,9 @@ import {
   EMPTY_STATE,
   clearState,
   downloadState,
+  isHowToSeen,
   loadState,
+  markHowToSeen,
   parseImported,
   saveState,
 } from "@/lib/storage";
@@ -21,6 +23,7 @@ export default function App() {
   const [state, setState] = useState<AppState>(loadState);
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [importError, setImportError] = useState<string | null>(null);
+  const [howToOpen, setHowToOpen] = useState(() => !isHowToSeen());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -42,6 +45,11 @@ export default function App() {
     }
   };
 
+  const closeHowTo = () => {
+    setHowToOpen(false);
+    markHowToSeen();
+  };
+
   const handleReset = () => {
     if (!confirm("Стерти всі введені дані й почати спочатку?")) return;
     clearState();
@@ -58,6 +66,15 @@ export default function App() {
           </p>
         </div>
         <div className="flex items-center gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            title="Показати покрокову інструкцію"
+            onClick={() => setHowToOpen(true)}
+          >
+            <HelpCircle className="mr-1 h-3.5 w-3.5" />
+            Як користуватись
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -115,7 +132,7 @@ export default function App() {
 
       {importError && <p className="text-sm text-destructive">{importError}</p>}
 
-      <HowTo />
+      <HowTo open={howToOpen} onClose={closeHowTo} />
 
       <PersonForm
         person={state.person}

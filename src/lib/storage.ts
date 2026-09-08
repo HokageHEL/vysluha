@@ -14,6 +14,25 @@ export const EMPTY_STATE: AppState = {
 };
 
 const STORAGE_KEY = "vysluha:state:v1";
+const HOWTO_SEEN_KEY = "vysluha:howto-seen";
+
+// Інструкція показується автоматично лише при першому відкритті.
+export function isHowToSeen(): boolean {
+  try {
+    return localStorage.getItem(HOWTO_SEEN_KEY) === "1";
+  } catch {
+    // сховище недоступне — не нагадуємо щоразу, є кнопка в шапці
+    return true;
+  }
+}
+
+export function markHowToSeen(): void {
+  try {
+    localStorage.setItem(HOWTO_SEEN_KEY, "1");
+  } catch {
+    // ignore
+  }
+}
 
 // Дані живуть лише в браузері користувача — сервера й бази тут немає.
 export function loadState(): AppState {
