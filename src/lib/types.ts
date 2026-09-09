@@ -40,6 +40,7 @@ export interface SignatureBlock {
 export interface ServiceExtraPeriod {
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD, "" = по теперішній час
-  coefficient: "preferential" | "study" | "none";
+  coefficient: "calendar" | "preferential" | "double" | "oneHalf" | "fortyDays" | "study" | "none";
+  studyEligible?: boolean; // підтверджені умови п. 2; старі записи потребують перевірки
   note?: string;
 }

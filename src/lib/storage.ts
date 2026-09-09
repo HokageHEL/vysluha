@@ -1,3 +1,4 @@
+import { serviceRule } from "./service-rules";
 import {
   ServiceEvent,
   ServiceExtraPeriod,
@@ -12,6 +13,7 @@ export interface AppState {
   events: ServiceEvent[];
   signature: SignatureBlock;
   extras: ServiceExtraPeriod[];
+  calculationDate: string;
 }
 
 const EMPTY_PERSON: ServiceExtractPerson = {
@@ -41,6 +43,7 @@ export const EMPTY_STATE: AppState = {
   events: [],
   signature: EMPTY_SIGNATURE,
   extras: [],
+  calculationDate: "",
 };
 
 const STORAGE_KEY = "vysluha:state:v1";
@@ -131,10 +134,17 @@ const list = <T,>(value: unknown, map: (raw: Record<string, unknown>) => T): T[]
 
 // Мінімальна валідація імпортованого файлу: беремо лише знайомі поля.
 // Заразом відсіюються поля, які застосунок більше не використовує.
+function normalizeCoefficient(value: unknown): ServiceExtraPeriod["coefficient"] {
+  const rule = serviceRule(value);
+  if (!rule) throw new Error("Невідомий коефіцієнт вислуги в збережених даних.");
+  return rule.value;
+}
+
 function normalize(data: unknown): AppState {
   const obj = (data ?? {}) as Record<string, unknown>;
   return {
     person: normalizePerson(obj.person),
+    calculationDate: str(obj.calculationDate),
     records: list<ServiceRecord>(obj.records, (raw) => ({
       startDate: str(raw.startDate),
       endDate: str(raw.endDate),
@@ -150,10 +160,9 @@ function normalize(data: unknown): AppState {
       startDate: str(raw.startDate),
       endDate: str(raw.endDate),
       coefficient:
-        raw.coefficient === "study" || raw.coefficient === "none"
-          ? raw.coefficient
-          : "preferential",
+        normalizeCoefficient(raw.coefficient),
       note: str(raw.note),
+      studyEligible: raw.studyEligible === true,
     })),
   };
 }

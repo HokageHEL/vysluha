@@ -1,3 +1,4 @@
+import { LAW_URL, SERVICE_RULES, serviceRule } from "@/lib/service-rules";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import { DateRange, EditorRow } from "@/components/EditorRow";
 import { ServiceExtraPeriod, ServiceRecord } from "@/lib/types";
 import { formatPeriod, formatPlaceLine } from "@/lib/extract";
 import {
+  today,
   computeServiceTotals,
   formatDays360,
   periodDuration360,
@@ -29,24 +31,20 @@ import {
 interface ServiceCalculatorTabProps {
   records: ServiceRecord[]; // послужний список (тільки читання тут)
   extras: ServiceExtraPeriod[];
+  calculationDate: string;
+  onChangeCalculationDate: (date: string) => void;
   onChangeExtras: (extras: ServiceExtraPeriod[]) => void;
 }
-
-const EXTRA_COEFFICIENT_OPTIONS: {
-  value: ServiceExtraPeriod["coefficient"];
-  label: string;
-}[] = [
-  { value: "preferential", label: "Пільгова (×3)" },
-  { value: "study", label: "Навчання (×0,5)" },
-  { value: "none", label: "Не зараховується (×0)" },
-];
 
 export const ServiceCalculatorTab = ({
   records,
   extras,
   onChangeExtras,
+  calculationDate,
+  onChangeCalculationDate,
 }: ServiceCalculatorTabProps) => {
-  const totals = computeServiceTotals(records, extras);
+  const asOf = calculationDate || today();
+  const totals = computeServiceTotals(records, extras, asOf);
 
   const updateExtra = (index: number, patch: Partial<ServiceExtraPeriod>) => {
     onChangeExtras(
@@ -67,6 +65,17 @@ export const ServiceCalculatorTab = ({
 
   return (
     <div className="space-y-3">
+      <Card>
+        <CardContent className="space-y-3 p-3 text-sm">
+          <p>Правила: <a className="underline" href={LAW_URL} target="_blank" rel="noreferrer">постанова КМУ № 393, редакція від 21.11.2024</a>. Це історична редакція; пізніші зміни тут не застосовуються.</p>
+          <label className="flex flex-wrap items-center gap-2">Розрахувати станом на
+            <Input type="date" className="w-[160px]" value={asOf} onChange={(e) => onChangeCalculationDate(e.target.value)} />
+          </label>
+          <p className="text-xs text-muted-foreground">Повний місяць = 30 днів; 12 місяців = 360 днів = 1 рік. Перший і останній день включаються. Для неповного місяця використовується фактичний залишок днів після повних календарних місяців. Дробові дні зберігаються в розрахунку; на екрані — до трьох знаків. № 393 визначає підстави зарахування, але не деталізує арифметику неповних місяців.</p>
+          <p className="text-xs text-muted-foreground">Пільги п. 3 збільшують вислугу для визначення розміру пенсії. Результат не встановлює права на пенсію автоматично й не розраховує надбавку до грошового забезпечення. Для відомчих, іноземних і раніше обчислених періодів потрібні відповідні акти та документи (п. 1, 4, 5).</p>
+        </CardContent>
+      </Card>
+      {totals.warnings.length > 0 && <div role="alert" className="rounded-md border border-destructive/40 p-3 text-sm"><ul className="list-disc space-y-1 pl-4">{totals.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}
       <Card className="overflow-hidden rounded-md border bg-card shadow-sm">
         <CardHeader className="border-b bg-muted/30 px-3 py-2">
           <CardTitle className="text-sm font-semibold text-foreground">
@@ -76,8 +85,7 @@ export const ServiceCalculatorTab = ({
         <CardContent className="p-3">
           {records.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
-              Послужний список порожній — календарна вислуга формується з його
-              періодів на вкладці «Послужний список».
+              Послужний список порожній. Внесіть службу на вкладці «Послужний список» або додайте підтверджені періоди нижче.
             </p>
           ) : (
             <Table>
@@ -114,8 +122,7 @@ export const ServiceCalculatorTab = ({
             </Table>
           )}
           <p className="mt-2 text-xs text-muted-foreground">
-            Календарна вислуга не редагується — вона формується автоматично з
-            періодів послужного списку. Дні рахуються включно з першим і
+            Ці періоди редагуються на вкладці «Послужний список». Таблиця показує повну тривалість записів; підсумок обмежений датою розрахунку та враховує додаткові періоди нижче. Дні рахуються включно з першим і
             останнім (01.01.2021 – 03.01.2021 = 3 дні), дні на стиках періодів
             не дублюються.
           </p>
@@ -131,8 +138,7 @@ export const ServiceCalculatorTab = ({
         <CardContent className="p-3">
           {extras.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
-              Додаткових періодів немає. Тут додаються пільгова вислуга (×3),
-              навчання (×0,5) та періоди, що не зараховуються (×0).
+              Додайте іншу календарну службу ×1, пільгові періоди ×3, ×2, ×1,5, місяць за 40 днів, навчання ×0,5 або документально обґрунтовані виключення.
             </p>
           ) : (
             <div className="space-y-2">
@@ -147,7 +153,7 @@ export const ServiceCalculatorTab = ({
                     endDate={extra.endDate}
                     onChange={(patch) => updateExtra(index, patch)}
                   />
-                  <div className="grid gap-2 sm:grid-cols-[200px_1fr]">
+                  <div className="grid gap-2 sm:grid-cols-[minmax(240px,1fr)_2fr]">
                     <Select
                       value={extra.coefficient}
                       onValueChange={(value) =>
@@ -157,11 +163,11 @@ export const ServiceCalculatorTab = ({
                         })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger aria-label={`Коефіцієнт періоду ${index + 1}`}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {EXTRA_COEFFICIENT_OPTIONS.map((option) => (
+                        {SERVICE_RULES.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
@@ -170,12 +176,18 @@ export const ServiceCalculatorTab = ({
                     </Select>
                     <Input
                       value={extra.note || ""}
-                      placeholder="Напр., участь у бойових діях"
+                      aria-label={`Підстава періоду ${index + 1}`}
+                      placeholder="Підстава: пункт, наказ / довідка, номер і дата"
                       onChange={(e) =>
                         updateExtra(index, { note: e.target.value })
                       }
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground"><strong>{serviceRule(extra.coefficient)?.reference}.</strong> {serviceRule(extra.coefficient)?.description}</p>
+                  {extra.coefficient === "study" && <label className="flex items-start gap-2 text-xs">
+                    <input type="checkbox" checked={extra.studyEligible === true} onChange={(e) => updateExtra(index, { studyEligible: e.target.checked })} />
+                    <span>Підтверджую умови п. 2: належна категорія особи та заклад освіти, навчання до вступу на службу / призначення на відповідну посаду, призначення пенсії за п. «а» ч. 1 ст. 12.</span>
+                  </label>}
                 </EditorRow>
               ))}
             </div>
@@ -186,9 +198,7 @@ export const ServiceCalculatorTab = ({
             Додати період
           </Button>
           <p className="mt-2 text-xs text-muted-foreground">
-            При пересіканні з календарною вислугою день рахується за більшим
-            коефіцієнтом (пільгова ×3 перекриває календарну ×1). Періоди «не
-            зараховується» (×0) виключають дні повністю.
+            За п. 3¹ при перетині пільгових підстав береться найбільший коефіцієнт: вони не додаються й не перемножуються. Пільговий період уже включає календарну частину ×1. Навчання не дублює службу. Виключення ×0 мають пріоритет і зменшують лише наявні періоди. Вкажіть у кожному рядку документальну підставу та лише дати, на які вона поширюється.
           </p>
         </CardContent>
       </Card>
@@ -201,7 +211,7 @@ export const ServiceCalculatorTab = ({
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-4">
           <div>
-            <div className="text-xs text-muted-foreground">Календарна</div>
+            <div className="text-xs text-muted-foreground">Служба / робота ×1</div>
             <div className="text-sm font-semibold">
               {formatDays360(totals.calendarTotal)}
             </div>
@@ -223,11 +233,12 @@ export const ServiceCalculatorTab = ({
             </div>
           </div>
           <div>
-            <div className="text-xs text-muted-foreground">Разом вислуга</div>
+            <div className="text-xs text-muted-foreground">Для розміру пенсії</div>
             <div className="text-base font-bold text-primary">
               {formatDays360(totals.grandTotal)}
             </div>
           </div>
+          <p className="col-span-full text-sm">За п. 1, 2, 2¹ (без пільгового збільшення): <strong>{formatDays360(totals.appointmentTotal)}</strong> = служба / робота + зараховане навчання. Для розміру пенсії додатково враховано пільгове збільшення.</p>
           {totals.excluded > 0 && (
             <p className="col-span-full text-xs text-muted-foreground">
               Виключено періодами ×0: {formatDays360(totals.excluded)}.
@@ -235,8 +246,7 @@ export const ServiceCalculatorTab = ({
           )}
           {totals.studyCapped && (
             <p className="col-span-full text-xs text-muted-foreground">
-              До вислуги зараховано не більше 5 років навчання (п.2 Постанови
-              КМУ № 393): 1 рік навчання — 6 місяців служби.
+              Застосовано спільний для всіх періодів ліміт: 5 років навчання ×0,5 = максимум 2 роки 6 місяців зарахованої вислуги (п. 2).
             </p>
           )}
         </CardContent>

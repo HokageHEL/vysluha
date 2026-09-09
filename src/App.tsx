@@ -175,6 +175,8 @@ export default function App() {
           <ServiceCalculatorTab
             records={state.records}
             extras={state.extras}
+            calculationDate={state.calculationDate}
+            onChangeCalculationDate={(calculationDate) => setState((s) => ({ ...s, calculationDate }))}
             onChangeExtras={(extras) => setState((s) => ({ ...s, extras }))}
           />
         </TabsContent>
