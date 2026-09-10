@@ -76,7 +76,7 @@ jobs:
         run: npx electron-builder --win
 
       - name: Build Tauri (.exe Setup ~4MB)
-        run: npx tauri build
+        run: npx tauri build --bundles nsis
 
       - name: Prepare and Sign Artifacts
         shell: pwsh
@@ -179,7 +179,7 @@ jobs:
         run: npm run build
 
       - name: Build Tauri macOS (.dmg & .app)
-        run: npx tauri build
+        run: npx tauri build --bundles dmg
 
       - name: Upload macOS Artifacts
         uses: actions/upload-artifact@v4
