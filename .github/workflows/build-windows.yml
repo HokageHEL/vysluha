@@ -112,14 +112,24 @@ jobs:
           }
 
           # Sign all artifacts with Authenticode & RFC 3161 Timestamp
-          if (Test-Path "$PWD\certificate.pfx") {
-            $pfx = Get-PfxCertificate -FilePath "$PWD\certificate.pfx"
+          $pfxPath = "$PWD\certificate.pfx"
+          if (Test-Path $pfxPath) {
+            $certPassword = "VysluhaSecurePassword2026!"
+            $pfx = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($pfxPath, $certPassword, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+            
             Get-ChildItem -Path "artifacts\*.exe" | ForEach-Object {
               Write-Host "Signing $($_.FullName)..."
-              Set-AuthenticodeSignature -FilePath $_.FullName `
-                -Certificate $pfx `
-                -TimestampServer "http://timestamp.digicert.com" `
-                -HashAlgorithm SHA256
+              try {
+                Set-AuthenticodeSignature -FilePath $_.FullName `
+                  -Certificate $pfx `
+                  -TimestampServer "http://timestamp.digicert.com" `
+                  -HashAlgorithm SHA256
+              } catch {
+                Write-Warning "Timestamp server failed, signing without timestamp..."
+                Set-AuthenticodeSignature -FilePath $_.FullName `
+                  -Certificate $pfx `
+                  -HashAlgorithm SHA256
+              }
             }
           }
 
