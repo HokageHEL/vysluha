@@ -4,16 +4,19 @@ import {
   ServiceExtraPeriod,
   ServiceExtractPerson,
   ServiceRecord,
+  SimpleServicePeriod,
   SignatureBlock,
 } from "./types";
 
 export interface AppState {
+  mode: "standard" | "pro";
   person: ServiceExtractPerson;
   records: ServiceRecord[];
   events: ServiceEvent[];
   signature: SignatureBlock;
   extras: ServiceExtraPeriod[];
   calculationDate: string;
+  simplePeriods: SimpleServicePeriod[];
 }
 
 const EMPTY_PERSON: ServiceExtractPerson = {
@@ -38,16 +41,19 @@ const EMPTY_SIGNATURE: SignatureBlock = {
 };
 
 export const EMPTY_STATE: AppState = {
+  mode: "standard",
   person: EMPTY_PERSON,
   records: [],
   events: [],
   signature: EMPTY_SIGNATURE,
   extras: [],
   calculationDate: "",
+  simplePeriods: [],
 };
 
 const STORAGE_KEY = "vysluha:state:v1";
 const HOWTO_SEEN_KEY = "vysluha:howto-seen";
+const PRIVACY_NOTICE_DISMISSED_KEY = "vysluha:privacy-notice-dismissed";
 
 // Інструкція показується автоматично лише при першому відкритті.
 export function isHowToSeen(): boolean {
@@ -62,6 +68,22 @@ export function isHowToSeen(): boolean {
 export function markHowToSeen(): void {
   try {
     localStorage.setItem(HOWTO_SEEN_KEY, "1");
+  } catch {
+    // ignore
+  }
+}
+
+export function isPrivacyNoticeDismissed(): boolean {
+  try {
+    return localStorage.getItem(PRIVACY_NOTICE_DISMISSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function dismissPrivacyNotice(): void {
+  try {
+    localStorage.setItem(PRIVACY_NOTICE_DISMISSED_KEY, "1");
   } catch {
     // ignore
   }
@@ -143,6 +165,7 @@ function normalizeCoefficient(value: unknown): ServiceExtraPeriod["coefficient"]
 function normalize(data: unknown): AppState {
   const obj = (data ?? {}) as Record<string, unknown>;
   return {
+    mode: obj.mode === "pro" ? "pro" : "standard",
     person: normalizePerson(obj.person),
     calculationDate: str(obj.calculationDate),
     records: list<ServiceRecord>(obj.records, (raw) => ({
@@ -164,6 +187,14 @@ function normalize(data: unknown): AppState {
       note: str(raw.note),
       studyEligible: raw.studyEligible === true,
     })),
+    simplePeriods: list<SimpleServicePeriod>(obj.simplePeriods, (raw) => {
+      const coefficient = normalizeCoefficient(raw.coefficient);
+      return {
+        startDate: str(raw.startDate),
+        endDate: str(raw.endDate),
+        coefficient: coefficient === "study" || coefficient === "none" ? "calendar" : coefficient,
+      };
+    }),
   };
 }
 

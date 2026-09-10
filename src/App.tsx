@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Download,
   Github,
   HelpCircle,
   Moon,
   RotateCcw,
+  ShieldCheck,
   Sun,
-  Upload,
+  X,
 } from "lucide-react";
 import { HowTo } from "@/components/HowTo";
 import { Logo } from "@/components/Logo";
@@ -16,15 +16,16 @@ import { PersonForm } from "@/components/PersonForm";
 import { SignatureForm } from "@/components/SignatureForm";
 import { ServiceCalculatorTab } from "@/components/ServiceCalculatorTab";
 import { ServiceRecordTab } from "@/components/ServiceRecordTab";
+import { SimpleCalculator } from "@/components/SimpleCalculator";
 import {
   AppState,
   EMPTY_STATE,
   clearState,
-  downloadState,
+  dismissPrivacyNotice,
+  isPrivacyNoticeDismissed,
   isHowToSeen,
   loadState,
   markHowToSeen,
-  parseImported,
   saveState,
 } from "@/lib/storage";
 import { Theme, applyTheme, initialTheme } from "@/lib/theme";
@@ -32,9 +33,10 @@ import { Theme, applyTheme, initialTheme } from "@/lib/theme";
 export default function App() {
   const [state, setState] = useState<AppState>(loadState);
   const [theme, setTheme] = useState<Theme>(initialTheme);
-  const [importError, setImportError] = useState<string | null>(null);
   const [howToOpen, setHowToOpen] = useState(() => !isHowToSeen());
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [privacyNoticeOpen, setPrivacyNoticeOpen] = useState(
+    () => !isPrivacyNoticeDismissed(),
+  );
 
   useEffect(() => {
     saveState(state);
@@ -43,17 +45,6 @@ export default function App() {
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
-
-  const handleImport = async (file: File) => {
-    setImportError(null);
-    try {
-      setState(parseImported(await file.text()));
-    } catch {
-      setImportError(
-        "Не вдалося прочитати файл — потрібен файл, збережений цим самим застосунком"
-      );
-    }
-  };
 
   const closeHowTo = () => {
     setHowToOpen(false);
@@ -64,6 +55,12 @@ export default function App() {
     if (!confirm("Стерти всі введені дані й почати спочатку?")) return;
     clearState();
     setState(EMPTY_STATE);
+  };
+
+  const isPro = state.mode === "pro";
+  const closePrivacyNotice = () => {
+    setPrivacyNoticeOpen(false);
+    dismissPrivacyNotice();
   };
 
   return (
@@ -91,24 +88,6 @@ export default function App() {
           <Button
             variant="outline"
             size="sm"
-            title="Зберегти всі введені дані у файл, щоб перенести на інший комп'ютер"
-            onClick={() => downloadState(state)}
-          >
-            <Download className="mr-1 h-3.5 w-3.5" />
-            Зберегти у файл
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            title="Відкрити раніше збережений файл із даними"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="mr-1 h-3.5 w-3.5" />
-            Відкрити файл
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
             title="Стерти все введене й почати з чистого аркуша"
             onClick={handleReset}
           >
@@ -129,29 +108,28 @@ export default function App() {
               <Moon className="h-4 w-4" />
             )}
           </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleImport(file);
-              e.target.value = "";
-            }}
-          />
         </div>
       </header>
 
-      {importError && <p className="text-sm text-destructive">{importError}</p>}
-
       <HowTo open={howToOpen} onClose={closeHowTo} />
 
-      <PersonForm
-        person={state.person}
-        onChange={(person) => setState((s) => ({ ...s, person }))}
-      />
+      <div className="inline-flex rounded-md bg-muted p-1" role="group" aria-label="Режим роботи">
+        <Button size="sm" variant={!isPro ? "secondary" : "ghost"} onClick={() => setState((s) => ({ ...s, mode: "standard" }))}>Звичайний</Button>
+        <Button size="sm" variant={isPro ? "secondary" : "ghost"} onClick={() => setState((s) => ({ ...s, mode: "pro" }))}>Pro</Button>
+      </div>
 
+      {privacyNoticeOpen && <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+        <p className="flex-1">
+          <strong>Ваші дані залишаються у вас.</strong> Застосунок працює без сервера: введена інформація обробляється та зберігається лише локально у цьому браузері й не передається нам або третім сторонам. Якщо очистити дані браузера чи скористатися іншим пристроєм або браузером, записи будуть недоступні.
+        </p>
+        <Button variant="ghost" size="icon" className="-mr-1 -mt-1 h-7 w-7 shrink-0" onClick={closePrivacyNotice} aria-label="Закрити повідомлення про приватність" title="Закрити">
+          <X className="h-4 w-4" />
+        </Button>
+      </div>}
+
+      {isPro ? <>
+      <PersonForm person={state.person} onChange={(person) => setState((s) => ({ ...s, person }))} />
       <Tabs defaultValue="record">
         <TabsList>
           <TabsTrigger value="record">1. Послужний список</TabsTrigger>
@@ -181,6 +159,12 @@ export default function App() {
           />
         </TabsContent>
       </Tabs>
+      </> : <SimpleCalculator
+        periods={state.simplePeriods}
+        calculationDate={state.calculationDate}
+        onChangeCalculationDate={(calculationDate) => setState((s) => ({ ...s, calculationDate }))}
+        onChangePeriods={(simplePeriods) => setState((s) => ({ ...s, simplePeriods }))}
+      />}
 
       <footer className="border-t pt-3 text-center text-xs text-muted-foreground">
         Дякую, що користуєтесь. Посилання на проєкт —{" "}

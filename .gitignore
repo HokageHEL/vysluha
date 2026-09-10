@@ -4,3 +4,7 @@ dist
 .DS_Store
 *.local
 tsconfig.tsbuildinfo
+
+# Локальні службові артефакти Codex
+.codex/
+.codex-pet-runs/

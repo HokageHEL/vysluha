@@ -44,3 +44,10 @@ export interface ServiceExtraPeriod {
   studyEligible?: boolean; // підтверджені умови п. 2; старі записи потребують перевірки
   note?: string;
 }
+
+// Скорочений запис для звичайного режиму: лише строк служби та коефіцієнт.
+export interface SimpleServicePeriod {
+  startDate: string;
+  endDate: string;
+  coefficient: "calendar" | "preferential" | "double" | "oneHalf" | "fortyDays";
+}
