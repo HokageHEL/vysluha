@@ -7,3 +7,11 @@ tsconfig.tsbuildinfo
 
 # Локальні службові артефакти Codex
 .codex/
+
+# Desktop builds & artifacts
+release-electron/
+artifacts/
+src-tauri/target/
+*.pfx
+*.cer
+
