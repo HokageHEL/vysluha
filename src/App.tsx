@@ -17,6 +17,9 @@ import { SignatureForm } from "@/components/SignatureForm";
 import { ServiceCalculatorTab } from "@/components/ServiceCalculatorTab";
 import { ServiceRecordTab } from "@/components/ServiceRecordTab";
 import { SimpleCalculator } from "@/components/SimpleCalculator";
+import { SalaryCalculatorTab } from "@/components/SalaryCalculatorTab";
+import { computeServiceTotals, today } from "@/lib/service-calc";
+
 import {
   AppState,
   EMPTY_STATE,
@@ -62,6 +65,12 @@ export default function App() {
     setPrivacyNoticeOpen(false);
     dismissPrivacyNotice();
   };
+
+  const asOf = state.calculationDate || today();
+  const proTotals = computeServiceTotals(state.records, state.extras, asOf);
+  const standardTotals = computeServiceTotals([], state.simplePeriods, asOf);
+  const proYears = proTotals.calendarTotal / 360;
+  const standardYears = standardTotals.calendarTotal / 360;
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-3 p-3 sm:p-6">
@@ -134,6 +143,7 @@ export default function App() {
         <TabsList>
           <TabsTrigger value="record">1. Послужний список</TabsTrigger>
           <TabsTrigger value="calculator">2. Вислуга</TabsTrigger>
+          <TabsTrigger value="salary">3. Грошове забезпечення</TabsTrigger>
         </TabsList>
         <TabsContent value="record" className="space-y-3">
           <ServiceRecordTab
@@ -158,13 +168,39 @@ export default function App() {
             onChangeExtras={(extras) => setState((s) => ({ ...s, extras }))}
           />
         </TabsContent>
+        <TabsContent value="salary">
+          <SalaryCalculatorTab
+            salary={state.salary}
+            onChangeSalary={(salary) => setState((s) => ({ ...s, salary }))}
+            personRank={state.person.militaryRank}
+            calculatedSeniorityYears={proYears}
+          />
+        </TabsContent>
       </Tabs>
-      </> : <SimpleCalculator
-        periods={state.simplePeriods}
-        calculationDate={state.calculationDate}
-        onChangeCalculationDate={(calculationDate) => setState((s) => ({ ...s, calculationDate }))}
-        onChangePeriods={(simplePeriods) => setState((s) => ({ ...s, simplePeriods }))}
-      />}
+      </> : (
+      <Tabs defaultValue="calculator">
+        <TabsList>
+          <TabsTrigger value="calculator">1. Вислуга</TabsTrigger>
+          <TabsTrigger value="salary">2. Грошове забезпечення</TabsTrigger>
+        </TabsList>
+        <TabsContent value="calculator">
+          <SimpleCalculator
+            periods={state.simplePeriods}
+            calculationDate={state.calculationDate}
+            onChangeCalculationDate={(calculationDate) => setState((s) => ({ ...s, calculationDate }))}
+            onChangePeriods={(simplePeriods) => setState((s) => ({ ...s, simplePeriods }))}
+          />
+        </TabsContent>
+        <TabsContent value="salary">
+          <SalaryCalculatorTab
+            salary={state.salary}
+            onChangeSalary={(salary) => setState((s) => ({ ...s, salary }))}
+            calculatedSeniorityYears={standardYears}
+          />
+        </TabsContent>
+      </Tabs>
+      )}
+
 
       <footer className="border-t pt-3 text-center text-xs text-muted-foreground">
         Дякую, що користуєтесь. Посилання на проєкт —{" "}

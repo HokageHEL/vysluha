@@ -51,3 +51,6 @@ export interface SimpleServicePeriod {
   endDate: string;
   coefficient: "calendar" | "preferential" | "double" | "oneHalf" | "fortyDays";
 }
+
+export type { SalaryFormData } from "./salary-calc";
+

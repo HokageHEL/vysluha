@@ -1,5 +1,6 @@
 import { serviceRule } from "./service-rules";
 import {
+  SalaryFormData,
   ServiceEvent,
   ServiceExtraPeriod,
   ServiceExtractPerson,
@@ -7,6 +8,7 @@ import {
   SimpleServicePeriod,
   SignatureBlock,
 } from "./types";
+import { DEFAULT_SALARY_FORM_DATA } from "./salary-calc";
 
 export interface AppState {
   mode: "standard" | "pro";
@@ -17,7 +19,9 @@ export interface AppState {
   extras: ServiceExtraPeriod[];
   calculationDate: string;
   simplePeriods: SimpleServicePeriod[];
+  salary: SalaryFormData;
 }
+
 
 const EMPTY_PERSON: ServiceExtractPerson = {
   lastName: "",
@@ -49,7 +53,9 @@ export const EMPTY_STATE: AppState = {
   extras: [],
   calculationDate: "",
   simplePeriods: [],
+  salary: DEFAULT_SALARY_FORM_DATA,
 };
+
 
 const STORAGE_KEY = "vysluha:state:v1";
 const HOWTO_SEEN_KEY = "vysluha:howto-seen";
@@ -162,6 +168,25 @@ function normalizeCoefficient(value: unknown): ServiceExtraPeriod["coefficient"]
   return rule.value;
 }
 
+function normalizeSalary(data: unknown): SalaryFormData {
+  if (!data || typeof data !== "object") return DEFAULT_SALARY_FORM_DATA;
+  const raw = data as Record<string, unknown>;
+  return {
+    ...DEFAULT_SALARY_FORM_DATA,
+    ...(raw as Partial<SalaryFormData>),
+    rankIndex: typeof raw.rankIndex === "number" ? raw.rankIndex : DEFAULT_SALARY_FORM_DATA.rankIndex,
+    tariffIndex: typeof raw.tariffIndex === "number" ? raw.tariffIndex : DEFAULT_SALARY_FORM_DATA.tariffIndex,
+    seniorityIndex: typeof raw.seniorityIndex === "number" ? raw.seniorityIndex : DEFAULT_SALARY_FORM_DATA.seniorityIndex,
+    dutyMode: raw.dutyMode === "custom" ? "custom" : "default",
+    dutyConditionIndex: typeof raw.dutyConditionIndex === "number" ? raw.dutyConditionIndex : 0,
+    branchIndex: typeof raw.branchIndex === "number" ? raw.branchIndex : 0,
+    ssoPositionIndex: typeof raw.ssoPositionIndex === "number" ? raw.ssoPositionIndex : 0,
+    disciplineViolation: raw.disciplineViolation === true,
+    month: typeof raw.month === "number" ? raw.month : DEFAULT_SALARY_FORM_DATA.month,
+    year: typeof raw.year === "number" ? raw.year : DEFAULT_SALARY_FORM_DATA.year,
+  };
+}
+
 function normalize(data: unknown): AppState {
   const obj = (data ?? {}) as Record<string, unknown>;
   return {
@@ -195,8 +220,10 @@ function normalize(data: unknown): AppState {
         coefficient: coefficient === "study" || coefficient === "none" ? "calendar" : coefficient,
       };
     }),
+    salary: normalizeSalary(obj.salary),
   };
 }
+
 
 export function parseImported(text: string): AppState {
   return normalize(JSON.parse(text));

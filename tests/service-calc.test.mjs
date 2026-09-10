@@ -8,11 +8,12 @@ import ts from 'typescript';
 
 const folder = await mkdtemp(join(tmpdir(), 'vysluha-tests-'));
 after(() => rm(folder, { recursive: true, force: true }));
-for (const name of ['types', 'service-rules', 'service-calc', 'storage']) {
+for (const name of ['salary-data', 'salary-calc', 'types', 'service-rules', 'service-calc', 'storage']) {
   const source = await readFile(new URL(`../src/lib/${name}.ts`, import.meta.url), 'utf8');
   const output = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext } }).outputText;
   await writeFile(join(folder, `${name}.mjs`), output.replace(/from "\.\/(.*?)"/g, 'from "./$1.mjs"'));
 }
+
 const { computeServiceTotals: compute, periodDuration360: duration, formatDays360 } = await import(pathToFileURL(join(folder, 'service-calc.mjs')));
 const { parseImported } = await import(pathToFileURL(join(folder, 'storage.mjs')));
 const record = (startDate, endDate) => ({ startDate, endDate, position: '', place: '' });
