@@ -121,7 +121,7 @@ export default function App() {
       {privacyNoticeOpen && <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
         <p className="flex-1">
-          <strong>Ваші дані залишаються у вас.</strong> Застосунок працює без сервера: введена інформація обробляється та зберігається лише локально у цьому браузері й не передається нам або третім сторонам. Якщо очистити дані браузера чи скористатися іншим пристроєм або браузером, записи будуть недоступні.
+          <strong>Ваші дані залишаються у вас.</strong> Застосунок працює без бази данних: введена інформація обробляється та зберігається лише локально у Вашому браузері й не передається нам або третім сторонам. Якщо очистити дані браузера чи скористатися іншим пристроєм або браузером - записи будуть недоступні.
         </p>
         <Button variant="ghost" size="icon" className="-mr-1 -mt-1 h-7 w-7 shrink-0" onClick={closePrivacyNotice} aria-label="Закрити повідомлення про приватність" title="Закрити">
           <X className="h-4 w-4" />
