@@ -62,12 +62,6 @@ jobs:
               -CertStoreLocation "Cert:\CurrentUser\My" `
               -NotAfter (Get-Date).AddYears(5)
 
-            # Add to Trusted Root on the runner so signtool trusts it
-            $rootStore = Get-Item "Cert:\CurrentUser\Root"
-            $rootStore.Open([Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-            $rootStore.Add($cert)
-            $rootStore.Close()
-
             $securePassword = ConvertTo-SecureString -String $certPassword -Force -AsPlainText
             Export-PfxCertificate -Cert $cert -FilePath "$PWD\certificate.pfx" -Password $securePassword
             Export-Certificate -Cert $cert -FilePath "$PWD\Vysluha360_Certificate.cer"
