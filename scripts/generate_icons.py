@@ -161,8 +161,16 @@ def main():
         f.write(pngs[256])
     with open("src-tauri/icons/icon.png", "wb") as f:
         f.write(png_512)
-    with open("src-tauri/icons/icon.ico", "wb") as f:
-        f.write(ico_data)
+    # Write macOS ICNS icon
+    def make_icns(p512, p256, p128):
+        chunks = []
+        for tag, data in [(b'ic07', p128), (b'ic08', p256), (b'ic09', p512)]:
+            chunks.append(tag + struct.pack('>I', len(data) + 8) + data)
+        body = b''.join(chunks)
+        return b'icns' + struct.pack('>I', len(body) + 8) + body
+
+    with open("src-tauri/icons/icon.icns", "wb") as f:
+        f.write(make_icns(png_512, pngs[256], pngs[128]))
 
     print("Icons generated successfully!")
 
