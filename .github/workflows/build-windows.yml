@@ -33,7 +33,7 @@ jobs:
           workspaces: src-tauri
 
       - name: Install npm dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build web assets
         run: npm run build
@@ -44,12 +44,11 @@ jobs:
         run: |
           if ("${{ secrets.CSC_LINK }}" -ne "") {
             Write-Host "Using certificate from GitHub Secrets."
-            # If CSC_LINK is base64 string, decode it
             if ("${{ secrets.CSC_LINK }}".Length -gt 260) {
               [IO.File]::WriteAllBytes("$PWD\certificate.pfx", [Convert]::FromBase64String("${{ secrets.CSC_LINK }}"))
-              echo "CSC_LINK=$PWD\certificate.pfx" >> $env:GITHUB_ENV
+              Add-Content -Path $env:GITHUB_ENV -Value "CSC_LINK=$PWD\certificate.pfx"
             }
-            echo "CSC_KEY_PASSWORD=${{ secrets.CSC_KEY_PASSWORD }}" >> $env:GITHUB_ENV
+            Add-Content -Path $env:GITHUB_ENV -Value "CSC_KEY_PASSWORD=${{ secrets.CSC_KEY_PASSWORD }}"
           } else {
             Write-Host "Creating self-signed Code Signing certificate..."
             $certPassword = "VysluhaSecurePassword2026!"
@@ -63,12 +62,18 @@ jobs:
               -CertStoreLocation "Cert:\CurrentUser\My" `
               -NotAfter (Get-Date).AddYears(5)
 
+            # Add to Trusted Root on the runner so signtool trusts it
+            $rootStore = Get-Item "Cert:\CurrentUser\Root"
+            $rootStore.Open([Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+            $rootStore.Add($cert)
+            $rootStore.Close()
+
             $securePassword = ConvertTo-SecureString -String $certPassword -Force -AsPlainText
             Export-PfxCertificate -Cert $cert -FilePath "$PWD\certificate.pfx" -Password $securePassword
             Export-Certificate -Cert $cert -FilePath "$PWD\Vysluha360_Certificate.cer"
 
-            echo "CSC_LINK=$PWD\certificate.pfx" >> $env:GITHUB_ENV
-            echo "CSC_KEY_PASSWORD=$certPassword" >> $env:GITHUB_ENV
+            Add-Content -Path $env:GITHUB_ENV -Value "CSC_LINK=$PWD\certificate.pfx"
+            Add-Content -Path $env:GITHUB_ENV -Value "CSC_KEY_PASSWORD=$certPassword"
           }
 
       - name: Build Electron (.exe Portable & Setup)
@@ -91,12 +96,17 @@ jobs:
             }
           }
 
-          # Copy Tauri binaries
+          # Copy Tauri setup installer
           if (Test-Path "src-tauri\target\release\bundle\nsis") {
             Get-ChildItem -Path "src-tauri\target\release\bundle\nsis\*.exe" | ForEach-Object {
               $destName = "artifacts\Вислуга 360 Tauri Setup 1.0.0.exe"
               Copy-Item $_.FullName -Destination $destName
             }
+          }
+
+          # Copy Tauri raw portable binary if exists
+          if (Test-Path "src-tauri\target\release\vysluha.exe") {
+            Copy-Item "src-tauri\target\release\vysluha.exe" -Destination "artifacts\Вислуга 360 Tauri Portable 1.0.0.exe"
           }
 
           # Copy certificate and helper
