@@ -8,9 +8,7 @@ import { SimpleServicePeriod } from "@/lib/types";
 import { computeServiceTotals, formatDays360, today } from "@/lib/service-calc";
 import { Plus } from "lucide-react";
 
-const SIMPLE_RULES = SERVICE_RULES.filter(
-  (rule) => rule.value !== "none",
-);
+const SIMPLE_RULES = SERVICE_RULES;
 
 interface SimpleCalculatorProps {
   periods: SimpleServicePeriod[];
@@ -76,6 +74,9 @@ export const SimpleCalculator = ({
                     </label>
                     <p className="text-muted-foreground">Зараховується половина строку навчання, але не більше 5 років навчання загалом (максимум 2 роки 6 місяців вислуги).</p>
                   </div>}
+                  {period.coefficient === "none" && <p className="text-xs text-muted-foreground">
+                    Період виключається лише за наявності документальної підстави. Постанова № 393 не встановлює універсального виключення для будь-якої відсутності на службі.
+                  </p>}
                 </EditorRow>
               ))}
             </div>
@@ -93,6 +94,7 @@ export const SimpleCalculator = ({
           <div><div className="text-xs text-muted-foreground">Пільгова (додатково)</div><div className="text-sm font-semibold">{formatDays360(totals.preferentialBonus)}</div></div>
           <div><div className="text-xs text-muted-foreground">Навчання ×0,5</div><div className="text-sm font-semibold">{formatDays360(totals.studyCounted)}</div></div>
           <div><div className="text-xs text-muted-foreground">Усього</div><div className="text-base font-bold text-primary">{formatDays360(totals.grandTotal)}</div></div>
+          {totals.excluded > 0 && <p className="text-xs text-muted-foreground sm:col-span-4">Виключено періодами ×0: {formatDays360(totals.excluded)}.</p>}
           {totals.studyCapped && <p className="text-xs text-muted-foreground sm:col-span-4">Застосовано ліміт п. 2: не більше 5 років навчання, тобто максимум 2 роки 6 місяців зарахованої вислуги.</p>}
         </CardContent>
       </Card>

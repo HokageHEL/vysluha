@@ -217,7 +217,7 @@ function normalize(data: unknown): AppState {
       return {
         startDate: str(raw.startDate),
         endDate: str(raw.endDate),
-        coefficient: coefficient === "none" ? "calendar" : coefficient,
+        coefficient,
         studyEligible: coefficient === "study" ? raw.studyEligible === true : undefined,
       };
     }),

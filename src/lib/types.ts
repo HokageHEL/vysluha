@@ -50,7 +50,7 @@ export interface ServiceExtraPeriod {
 export interface SimpleServicePeriod {
   startDate: string;
   endDate: string;
-  coefficient: "calendar" | "preferential" | "double" | "oneHalf" | "fortyDays" | "study";
+  coefficient: "calendar" | "preferential" | "double" | "oneHalf" | "fortyDays" | "study" | "none";
   studyEligible?: boolean;
 }
 

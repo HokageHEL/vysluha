@@ -88,7 +88,7 @@ test('Звичайний режим зберігає навчання ×0,5 та
     coefficient: 'study',
     studyEligible: true,
   }]);
-  assert.equal(parseImported(JSON.stringify({ simplePeriods: [{ ...extra('none') }] })).simplePeriods[0].coefficient, 'calendar');
+  assert.equal(parseImported(JSON.stringify({ simplePeriods: [{ ...extra('none') }] })).simplePeriods[0].coefficient, 'none');
 });
 
 for (const [start, end] of [['2024-01-01', '2024-01-31'], ['2024-02-01', '2024-02-29']]) {
