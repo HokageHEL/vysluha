@@ -45,12 +45,13 @@ export interface ServiceExtraPeriod {
   note?: string;
 }
 
-// Скорочений запис для звичайного режиму: лише строк служби та коефіцієнт.
+// Скорочений запис для звичайного режиму: строк, коефіцієнт і підтвердження
+// спеціальних умов для навчання за п. 2 постанови № 393.
 export interface SimpleServicePeriod {
   startDate: string;
   endDate: string;
-  coefficient: "calendar" | "preferential" | "double" | "oneHalf" | "fortyDays";
+  coefficient: "calendar" | "preferential" | "double" | "oneHalf" | "fortyDays" | "study";
+  studyEligible?: boolean;
 }
 
 export type { SalaryFormData } from "./salary-calc";
-

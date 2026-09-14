@@ -80,6 +80,17 @@ test('Імпорт зберігає всі коефіцієнти та підт�
   assert.throws(() => parseImported(JSON.stringify({ extras: [extra('unknown')] })), /Невідомий коефіцієнт/);
 });
 
+test('Звичайний режим зберігає навчання ×0,5 та підтвердження умов', () => {
+  const simplePeriods = [{ ...extra('study'), note: undefined }];
+  assert.deepEqual(parseImported(JSON.stringify({ simplePeriods })).simplePeriods, [{
+    startDate: '2024-01-01',
+    endDate: '2024-01-31',
+    coefficient: 'study',
+    studyEligible: true,
+  }]);
+  assert.equal(parseImported(JSON.stringify({ simplePeriods: [{ ...extra('none') }] })).simplePeriods[0].coefficient, 'calendar');
+});
+
 for (const [start, end] of [['2024-01-01', '2024-01-31'], ['2024-02-01', '2024-02-29']]) {
   test(`Підвищення ×2 до ×3 на останній день ${end} додає рівно день`, () => {
     const result = calc([], [extra('double', start, end), extra('preferential', end, end)]);
