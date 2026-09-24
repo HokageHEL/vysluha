@@ -35,7 +35,8 @@ export interface SalaryFormData {
   // Кваліфікація та надбавки
   hasSecrecy: boolean;
   secrecyIndex: number;
-  secrecyDirectWork: boolean;
+  secrecyEnhanced: boolean;
+  secrecyEnhancedPercent: number;
 
   hasQualification: boolean;
   qualificationIndex: number;
@@ -113,7 +114,8 @@ export const DEFAULT_SALARY_FORM_DATA: SalaryFormData = {
 
   hasSecrecy: false,
   secrecyIndex: 0,
-  secrecyDirectWork: false,
+  secrecyEnhanced: false,
+  secrecyEnhancedPercent: 20,
 
   hasQualification: false,
   qualificationIndex: 0,
@@ -332,12 +334,15 @@ export function calculateSalary(data: SalaryFormData): SalaryCalculationResult {
   const seniorityBonus = round2(((baseSalary + ovz) * seniorityPercent) / 100);
 
   // Секретність
-  let secrecyPercent = 0;
-  if (data.hasSecrecy && data.secrecyIndex > 0) {
-    const raw = SECRECY_OPTIONS[data.secrecyIndex]?.raw || "0";
-    const parts = raw.split(";");
-    secrecyPercent = data.secrecyDirectWork ? Number(parts[1] || 0) : Number(parts[0] || 0);
-  }
+  const secrecyOption = SECRECY_OPTIONS[data.secrecyIndex];
+  const secrecyPercent = data.hasSecrecy && secrecyOption
+    ? data.secrecyEnhanced
+      ? Math.min(
+          secrecyOption.maxEnhancedPercent,
+          Math.max(secrecyOption.percent, Number(data.secrecyEnhancedPercent) || 0)
+        )
+      : secrecyOption.percent
+    : 0;
   const secrecyBonus = round2((baseSalary * secrecyPercent) / 100);
 
   // Особливості проходження служби (НОПС)

@@ -1199,21 +1199,24 @@ export const SSO_POSITIONS: SsoPositionOption[] = [
 ];
 
 // 7. Секретність
-export const SECRECY_OPTIONS: RawOption[] = [
+export const SECRECY_OPTIONS: (PercentOption & { maxEnhancedPercent: number })[] = [
   {
     "index": 0,
     "label": "Таємно",
-    "raw": "0"
+    "percent": 10,
+    "maxEnhancedPercent": 20
   },
   {
     "index": 1,
     "label": "Цілком таємно",
-    "raw": "10;30"
+    "percent": 15,
+    "maxEnhancedPercent": 30
   },
   {
     "index": 2,
     "label": "Особливої важливості",
-    "raw": "15;50"
+    "percent": 20,
+    "maxEnhancedPercent": 60
   }
 ];
 

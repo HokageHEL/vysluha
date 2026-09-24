@@ -64,8 +64,7 @@ test('Офіцерська посада: майор (15 розряд, 30 тар�
     tariffIndex: 29, // 30 розряд (5920 грн)
     seniorityIndex: 4, // 40%
     hasSecrecy: true,
-    secrecyIndex: 1, // Таємно
-    secrecyDirectWork: true, // 30%
+    secrecyIndex: 1, // Цілком таємно — 15%
     dv100combatEnabled: true,
     dv100combatDays: 20,
     month: 9, // 30 днів
@@ -77,9 +76,9 @@ test('Офіцерська посада: майор (15 розряд, 30 тар�
   assert.equal(res.seniorityPercent, 40);
   assert.equal(res.seniorityBonus, 2904);
   assert.equal(res.nopsBonus, 6606.6);
-  assert.equal(res.secrecyBonus, 1776);
+  assert.equal(res.secrecyBonus, 888);
   assert.equal(res.premiumAmount, 23088);
-  assert.equal(res.monthlySalaryTotal, 41634.6);
+  assert.equal(res.monthlySalaryTotal, 40746.6);
 
   // Бойові: 100 000 / 30 * 20 = 66666.67
   assert.equal(res.dv100combatAmount, 66666.67);
@@ -89,7 +88,43 @@ test('Офіцерська посада: майор (15 розряд, 30 тар�
 
   // Пільга з ВЗ для бойових днів
   assert.ok(res.militaryTaxExemption > 0);
-  assert.ok(res.netPay > 110000);
+  assert.ok(res.netPay > 109000);
+});
+
+test('Надбавка за таємність: Т — 10%, ЦТ — 15%, ОВ — 20% від посадового окладу', () => {
+  for (const [secrecyIndex, percent] of [[0, 10], [1, 15], [2, 20]]) {
+    const res = calculateSalary({
+      ...DEFAULT_SALARY_FORM_DATA,
+      hasSecrecy: true,
+      secrecyIndex,
+    });
+    assert.equal(res.secrecyPercent, percent);
+    assert.equal(res.secrecyBonus, res.baseSalary * percent / 100);
+  }
+
+  const disabled = calculateSalary({
+    ...DEFAULT_SALARY_FORM_DATA,
+    hasSecrecy: false,
+    secrecyIndex: 2,
+  });
+  assert.equal(disabled.secrecyBonus, 0);
+});
+
+test('Підвищена надбавка за таємність обмежена 20%, 30% і 60%', () => {
+  for (const [secrecyIndex, standard, maximum] of [[0, 10, 20], [1, 15, 30], [2, 20, 60]]) {
+    const form = {
+      ...DEFAULT_SALARY_FORM_DATA,
+      hasSecrecy: true,
+      secrecyIndex,
+      secrecyEnhanced: true,
+    };
+
+    assert.equal(calculateSalary({ ...form, secrecyEnhancedPercent: maximum }).secrecyPercent, maximum);
+    assert.equal(calculateSalary({ ...form, secrecyEnhancedPercent: maximum - 1 }).secrecyPercent, maximum - 1);
+    assert.equal(calculateSalary({ ...form, secrecyEnhancedPercent: maximum + 10 }).secrecyPercent, maximum);
+    assert.equal(calculateSalary({ ...form, secrecyEnhancedPercent: 0 }).secrecyPercent, standard);
+    assert.equal(calculateSalary({ ...form, hasSecrecy: false }).secrecyPercent, 0);
+  }
 });
 
 test('Обмеження ліміту 460 000 грн для максимальних бойових виплат', () => {

@@ -90,7 +90,8 @@ export const SalaryCalculatorTab = ({
       disciplineViolation: false,
       hasSecrecy: false,
       secrecyIndex: 0,
-      secrecyDirectWork: false,
+      secrecyEnhanced: false,
+      secrecyEnhancedPercent: 20,
       hasQualification: false,
       qualificationIndex: 0,
       medCategoryIndex: 0,
@@ -490,7 +491,10 @@ export const SalaryCalculatorTab = ({
                           <div className="ml-5 space-y-2 pt-1">
                             <Select
                               value={String(salary.secrecyIndex)}
-                              onValueChange={(val) => update({ secrecyIndex: Number(val) })}
+                              onValueChange={(val) => update({
+                                secrecyIndex: Number(val),
+                                secrecyEnhancedPercent: SECRECY_OPTIONS[Number(val)].maxEnhancedPercent,
+                              })}
                             >
                               <SelectTrigger className="h-8 text-xs">
                                 <SelectValue />
@@ -498,7 +502,7 @@ export const SalaryCalculatorTab = ({
                               <SelectContent>
                                 {SECRECY_OPTIONS.map((s) => (
                                   <SelectItem key={s.index} value={String(s.index)}>
-                                    {s.label}
+                                    {s.label} — {s.percent}%
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -506,12 +510,30 @@ export const SalaryCalculatorTab = ({
                             <label className="flex items-center gap-2 text-muted-foreground">
                               <input
                                 type="checkbox"
-                                checked={salary.secrecyDirectWork}
-                                onChange={(e) => update({ secrecyDirectWork: e.target.checked })}
+                                checked={salary.secrecyEnhanced}
+                                onChange={(e) => update({
+                                  secrecyEnhanced: e.target.checked,
+                                  secrecyEnhancedPercent: SECRECY_OPTIONS[salary.secrecyIndex]?.maxEnhancedPercent ?? 20,
+                                })}
                                 className="rounded border-input text-primary"
                               />
-                              <span>Постійна робота з секретними відомостями (підвищений %)</span>
+                              <span>Штатний працівник РСО або секретник (підвищений %)</span>
                             </label>
+                            {salary.secrecyEnhanced && (
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <span>Відсоток (до {SECRECY_OPTIONS[salary.secrecyIndex]?.maxEnhancedPercent}%)</span>
+                                <Input
+                                  type="number"
+                                  min={SECRECY_OPTIONS[salary.secrecyIndex]?.percent}
+                                  max={SECRECY_OPTIONS[salary.secrecyIndex]?.maxEnhancedPercent}
+                                  step="0.1"
+                                  value={salary.secrecyEnhancedPercent}
+                                  onChange={(e) => update({ secrecyEnhancedPercent: Number(e.target.value) })}
+                                  onBlur={() => update({ secrecyEnhancedPercent: result.secrecyPercent })}
+                                  className="h-8 w-20 text-right"
+                                />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
